@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
-contract SimpleBank {
 
+contract SimpleBank {
     // State variables
 
     // Protect users' balance from other contracts
@@ -12,7 +12,6 @@ contract SimpleBank {
 
     // Owner of the bank
     address public owner;
-
 
     // Events - publicize actions to external listeners
 
@@ -56,8 +55,9 @@ contract SimpleBank {
     // Emit the appropriate event
 
     function enroll() public returns (bool) {
-        return enrolled[msg.sender];
+        enrolled[msg.sender] = true;
         emit LogEnrolled(msg.sender);
+        return enrolled[msg.sender];
     }
 
     /// @notice Deposit ether into bank
@@ -68,15 +68,16 @@ contract SimpleBank {
     // Users should be enrolled before they can make deposits
 
     function deposit() public payable returns (uint256) {
-
         /* Add the amount to the user's balance, call the event associated with a deposit,
           then return the balance of the user */
-        
-        require(enrolled[msg.sender], 'User is not enrolled and so cannot make a deposit.');
+
+        require(
+            enrolled[msg.sender],
+            "User is not enrolled and so cannot make a deposit."
+        );
         balances[msg.sender] += msg.value;
         emit LogDepositMade(msg.sender, msg.value);
         return balances[msg.sender];
-    }
     }
 
     /// @notice Withdraw ether from bank
@@ -86,21 +87,18 @@ contract SimpleBank {
     // Emit the appropriate event
 
     function withdraw(uint256 withdrawAmount) public returns (uint256) {
-
         // If the sender's balance is at least the amount they want to withdraw,
         // Subtract the amount from the sender's balance, and try to send that amount of ether
-        // to the user attempting to withdraw. 
+        // to the user attempting to withdraw.
         // return the user's balance.
 
-        address user = msg.sender;
-        // require(withdrawAmount >= owner.balance);
-        require(balances[user] >= withdrawAmount, 'Withdraw amount must be less than or equal to balance.');
-        balances[user] -= withdrawAmount; 
-        user.transfer(withdrawAmount);
-        emit LogWithdrawal(user,withdrawAmount,balances[user]);
-        return balances[user];
-    }
-
-
+        require(
+            balances[msg.sender] >= withdrawAmount,
+            "Withdraw amount must be less than or equal to balance."
+        );
+        balances[msg.sender] -= withdrawAmount;
+        msg.sender.transfer(withdrawAmount);
+        emit LogWithdrawal(msg.sender, withdrawAmount, balances[msg.sender]);
+        return balances[msg.sender];
     }
 }
